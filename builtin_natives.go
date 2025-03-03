@@ -30,6 +30,15 @@ func dnsResolve(vm *goja.Runtime) func(call goja.FunctionCall) goja.Value {
 
 func myIPAddress(vm *goja.Runtime) func(call goja.FunctionCall) goja.Value {
 	return func(call goja.FunctionCall) goja.Value {
+		// Using an address from the TEST-NET-2 block (198.51.100.0/24) ensures no real machine is contacted.
+		conn, err := net.Dial("udp", "198.51.100.1:80")
+		if err == nil {
+			defer conn.Close()
+			if localAddr, ok := conn.LocalAddr().(*net.UDPAddr); ok {
+				return vm.ToValue(localAddr.IP.String())
+			}
+		}
+
 		ifs, err := net.Interfaces()
 		if err != nil {
 			return goja.Null()
